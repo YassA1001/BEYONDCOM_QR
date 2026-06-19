@@ -1,0 +1,57 @@
+<div class="d-flex align-items-center justify-content-between mb-4 fade-in">
+  <div>
+    <h2 class="page-h2">Administrateurs</h2>
+    <p class="text-muted mb-0">Gérez les comptes ayant accès à la plateforme.</p>
+  </div>
+  <a href="/admin/users/create" class="btn btn-primary btn-pill"><i class="bi bi-person-plus me-1"></i> Nouvel admin</a>
+</div>
+
+<% if (users.length === 0){ %>
+  <div class="card-panel"><div class="card-panel-body"><div class="empty-state py-5"><i class="bi bi-people"></i><p>Aucun administrateur.</p></div></div></div>
+<% } else { %>
+  <div class="card-panel fade-in">
+    <div class="card-panel-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead><tr><th>Utilisateur</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Événements</th><th>Créé le</th><th class="text-end">Actions</th></tr></thead>
+          <tbody>
+            <% users.forEach(function(u){ %>
+              <tr class="fade-in-row">
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="user-avatar sm"><%= u.name.charAt(0).toUpperCase() %></div>
+                    <strong><%= u.name %></strong>
+                    <% if (u.id === currentUser.id){ %><span class="badge bg-light text-dark">Vous</span><% } %>
+                  </div>
+                </td>
+                <td class="text-muted"><%= u.email %></td>
+                <td>
+                  <% if (u.role === 'SUPER_ADMIN'){ %><span class="badge badge-super">Super Admin</span><% } else { %><span class="badge badge-admin">Admin</span><% } %>
+                </td>
+                <td>
+                  <% if (u.isActive){ %><span class="badge badge-active"><span class="dot"></span>Actif</span><% } else { %><span class="badge badge-inactive"><span class="dot"></span>Inactif</span><% } %>
+                </td>
+                <td><span class="num-pill"><%= u._count.events %></span></td>
+                <td class="text-muted small"><%= formatDate.formatDate(u.createdAt) %></td>
+                <td class="text-end">
+                  <form method="post" action="/admin/users/<%= u.id %>/toggle" class="d-inline">
+                    <button type="submit" class="btn btn-icon" title="<%= u.isActive ? 'Désactiver' : 'Activer' %>" <%= u.id === currentUser.id ? 'disabled' : '' %>>
+                      <i class="bi bi-toggle-on"></i>
+                    </button>
+                  </form>
+                  <button class="btn btn-icon text-danger" data-confirm
+                          data-form-action="/admin/users/<%= u.id %>/delete"
+                          data-title="Supprimer l'administrateur"
+                          data-message="Supprimer le compte « <%= u.name %> » ?"
+                          <%= u.id === currentUser.id ? 'disabled' : '' %>>
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+<% } %>

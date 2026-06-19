@@ -1,0 +1,111 @@
+// ============================================================
+// BeyondCom QR Event Platform - Prisma Schema
+// Database: PostgreSQL (via Supabase)
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  role      UserRole  @default(ADMIN)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  events Event[]
+
+  @@map("users")
+}
+
+model Event {
+  id           Int       @id @default(autoincrement())
+  name         String
+  slug         String    @unique
+  description  String?
+  location     String?
+  city         String?
+  startDate    DateTime?
+  endDate      DateTime?
+  logo         String?
+  banner       String?
+  primaryColor String?
+  isActive     Boolean   @default(true)
+  createdById  Int?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  createdBy User?        @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  links     EventLink[]
+  scans     ScanLog[]
+  clicks    ClickLog[]
+
+  @@map("events")
+}
+
+model EventLink {
+  id        Int      @id @default(autoincrement())
+  eventId   Int
+  title     String
+  type      String
+  url       String
+  icon      String?
+  color     String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  event  Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  clicks ClickLog[]
+
+  @@map("event_links")
+}
+
+model ScanLog {
+  id         Int      @id @default(autoincrement())
+  eventId    Int
+  ipAddress  String?
+  userAgent  String?
+  deviceType String?
+  browser    String?
+  os         String?
+  scannedAt  DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([scannedAt])
+  @@map("scan_logs")
+}
+
+model ClickLog {
+  id          Int      @id @default(autoincrement())
+  eventId     Int
+  eventLinkId Int
+  ipAddress   String?
+  userAgent   String?
+  clickedAt   DateTime @default(now())
+
+  event     Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventLink EventLink @relation(fields: [eventLinkId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([eventLinkId])
+  @@index([clickedAt])
+  @@map("click_logs")
+}

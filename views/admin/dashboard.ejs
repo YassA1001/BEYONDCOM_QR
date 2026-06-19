@@ -1,0 +1,276 @@
+<div class="page-intro fade-in">
+  <div>
+    <h2 class="page-h2">Bonjour, <%= currentUser.name.split(' ')[0] %> 👋</h2>
+    <p class="text-muted">Vue d'ensemble de votre plateforme événementielle.</p>
+  </div>
+</div>
+
+<!-- Stat cards -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="stat-card lift" style="--accent:#0ea5e9">
+      <div class="stat-icon"><i class="bi bi-calendar2-event"></i></div>
+      <div class="stat-body">
+        <div class="stat-label">Événements</div>
+        <div class="stat-value" data-count="<%= summary.totalEvents %>">0</div>
+        <div class="stat-sub"><%= summary.activeEvents %> actifs</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="stat-card lift" style="--accent:#10b981">
+      <div class="stat-icon"><i class="bi bi-qr-code-scan"></i></div>
+      <div class="stat-body">
+        <div class="stat-label">Scans totaux</div>
+        <div class="stat-value" data-count="<%= summary.totalScans %>">0</div>
+        <div class="stat-sub">Toutes pages publiques</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="stat-card lift" style="--accent:#f59e0b">
+      <div class="stat-icon"><i class="bi bi-hand-index-thumb"></i></div>
+      <div class="stat-body">
+        <div class="stat-label">Clics totaux</div>
+        <div class="stat-value" data-count="<%= summary.totalClicks %>">0</div>
+        <div class="stat-sub">Sur tous les boutons</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="stat-card lift" style="--accent:#8b5cf6">
+      <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+      <div class="stat-body">
+        <div class="stat-label">Taux de clic</div>
+        <div class="stat-value"><span data-count="<%= summary.clickRate %>">0</span>%</div>
+        <div class="stat-sub">Clics / scans</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-xl-8">
+    <div class="card-panel h-100">
+      <div class="card-panel-header">
+        <h3><i class="bi bi-activity me-2"></i>Scans des 7 derniers jours</h3>
+      </div>
+      <div class="card-panel-body">
+        <div class="chart-wrap" style="height:280px">
+          <canvas id="scansChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-xl-4">
+    <div class="card-panel h-100">
+      <div class="card-panel-header">
+        <h3><i class="bi bi-pie-chart me-2"></i>Clics par type</h3>
+      </div>
+      <div class="card-panel-body">
+        <% if (clicksType.length === 0) { %>
+          <div class="empty-state py-5">
+            <i class="bi bi-bar-chart"></i>
+            <p>Aucun clic enregistré pour le moment.</p>
+          </div>
+        <% } else { %>
+          <div class="chart-wrap" style="height:280px">
+            <canvas id="clicksTypeChart"></canvas>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Top lists -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-lg-6">
+    <div class="card-panel h-100">
+      <div class="card-panel-header">
+        <h3><i class="bi bi-trophy me-2"></i>Top événements scannés</h3>
+      </div>
+      <div class="card-panel-body">
+        <% if (topScanned.length === 0) { %>
+          <div class="empty-state py-4">
+            <i class="bi bi-calendar-x"></i>
+            <p>Aucun scan pour le moment.</p>
+          </div>
+        <% } else { %>
+          <div class="list-group list-group-flush">
+            <% topScanned.forEach(function(e, i){ %>
+              <div class="list-item">
+                <div class="rank rank-<%= i+1 %>"><%= i+1 %></div>
+                <div class="flex-grow-1 min-w-0">
+                  <a href="/admin/events/<%= e.eventId %>" class="fw-semibold text-truncate d-block text-decoration-none"><%= e.name %></a>
+                  <div class="text-muted small">/e/<%= e.slug || '?' %></div>
+                </div>
+                <div class="text-end">
+                  <span class="badge-count"><%= e.scans %></span>
+                  <div class="text-muted small">scans</div>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <div class="card-panel h-100">
+      <div class="card-panel-header">
+        <h3><i class="bi bi-hand-index-thumb me-2"></i>Liens les plus cliqués</h3>
+      </div>
+      <div class="card-panel-body">
+        <% if (topLinks.length === 0) { %>
+          <div class="empty-state py-4">
+            <i class="bi bi-link-45deg"></i>
+            <p>Aucun clic pour le moment.</p>
+          </div>
+        <% } else { %>
+          <div class="list-group list-group-flush">
+            <% topLinks.forEach(function(l, i){ %>
+              <div class="list-item">
+                <div class="rank rank-<%= i+1 %>"><%= i+1 %></div>
+                <div class="flex-grow-1 min-w-0">
+                  <div class="fw-semibold text-truncate"><%= l.title %></div>
+                  <div class="text-muted small"><span class="link-type-tag"><%= l.type || 'link' %></span></div>
+                </div>
+                <div class="text-end">
+                  <span class="badge-count"><%= l.clicks %></span>
+                  <div class="text-muted small">clics</div>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent events -->
+<div class="card-panel">
+  <div class="card-panel-header">
+    <h3><i class="bi bi-clock-history me-2"></i>Derniers événements</h3>
+    <a href="/admin/events" class="btn btn-ghost btn-sm">Tout voir <i class="bi bi-arrow-right"></i></a>
+  </div>
+  <div class="card-panel-body">
+    <% if (summary.recentEvents.length === 0) { %>
+      <div class="empty-state py-5">
+        <i class="bi bi-calendar-plus"></i>
+        <p>Aucun événement créé pour le moment.</p>
+        <a href="/admin/events/create" class="btn btn-primary btn-pill mt-2">
+          <i class="bi bi-plus-lg me-1"></i>Créer un événement
+        </a>
+      </div>
+    <% } else { %>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Événement</th><th>Ville</th><th>Scans</th><th>Clics</th><th>Statut</th><th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% summary.recentEvents.forEach(function(e){ %>
+              <tr class="fade-in-row">
+                <td>
+                  <a href="/admin/events/<%= e.id %>" class="fw-semibold text-decoration-none"><%= e.name %></a>
+                  <div class="text-muted small">/e/<%= e.slug %></div>
+                </td>
+                <td><%= e.city || '—' %></td>
+                <td><span class="num-pill"><%= e._count.scans %></span></td>
+                <td><span class="num-pill"><%= e._count.clicks %></span></td>
+                <td>
+                  <% if (e.isActive) { %>
+                    <span class="badge badge-active"><span class="dot"></span>Actif</span>
+                  <% } else { %>
+                    <span class="badge badge-inactive"><span class="dot"></span>Inactif</span>
+                  <% } %>
+                </td>
+                <td class="text-end">
+                  <a href="/admin/events/<%= e.id %>/qr" class="btn btn-icon" title="QR"><i class="bi bi-qr-code"></i></a>
+                  <a href="/admin/events/<%= e.id %>/stats" class="btn btn-icon" title="Stats"><i class="bi bi-bar-chart"></i></a>
+                  <a href="/admin/events/<%= e.id %>/edit" class="btn btn-icon" title="Modifier"><i class="bi bi-pencil"></i></a>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+<script>
+(async function(){
+  // Animate count-up.
+  document.querySelectorAll('[data-count]').forEach(function(el){
+    const target = parseInt(el.dataset.count, 10) || 0;
+    let current = 0;
+    const step = Math.max(1, Math.ceil(target / 30));
+    const t = setInterval(function(){
+      current += step;
+      if (current >= target){ current = target; clearInterval(t); }
+      el.textContent = current;
+    }, 30);
+  });
+
+  const palette = ['#0ea5e9','#0f172a','#64748b','#10b981','#f59e0b','#ef4444'];
+  const scanData = <%= JSON.stringify(scanSeries) %>;
+  if (window.Chart && document.getElementById('scansChart')){
+    const ctx = document.getElementById('scansChart').getContext('2d');
+    const grad = ctx.createLinearGradient(0,0,0,280);
+    grad.addColorStop(0,'rgba(14,165,233,0.35)');
+    grad.addColorStop(1,'rgba(14,165,233,0)');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: scanData.labels,
+        datasets: [{
+          data: scanData.values,
+          borderColor: '#0ea5e9',
+          backgroundColor: grad,
+          tension: 0.4,
+          fill: true,
+          pointBackgroundColor: '#0ea5e9',
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          borderWidth: 3,
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(15,23,42,0.06)' } },
+          x: { grid: { display: false } }
+        },
+        animation: { duration: 900, easing: 'easeOutQuart' }
+      }
+    });
+  }
+
+  const ct = <%= JSON.stringify(clicksType) %>;
+  if (window.Chart && document.getElementById('clicksTypeChart') && ct.length){
+    new Chart(document.getElementById('clicksTypeChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ct.map(c => c.type),
+        datasets: [{
+          data: ct.map(c => c.count),
+          backgroundColor: palette,
+          borderWidth: 0,
+        }]
+      },
+      options: {
+        cutout: '65%',
+        plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { size: 12 } } } },
+        animation: { duration: 1000, easing: 'easeOutQuart' }
+      }
+    });
+  }
+})();
+</script>

@@ -1,0 +1,18 @@
+<% if (flash && (flash.success || flash.error)) { %>
+  <div class="alert alert-<%= flash.success ? 'success' : 'danger' %> d-flex align-items-center fade-in-up shadow-sm" role="alert">
+    <i class="bi bi-<%= flash.success ? 'check-circle' : 'exclamation-triangle' %> me-2"></i>
+    <div><%= flash.success || flash.error %></div>
+    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+  </div>
+<% } %>
+
+<% if (typeof errors !== 'undefined' && errors && Object.keys(errors).length > 0) { %>
+  <div class="alert alert-danger shadow-sm fade-in-up">
+    <div class="fw-semibold mb-1"><i class="bi bi-exclamation-triangle me-2"></i>Veuillez corriger les champs suivants :</div>
+    <ul class="mb-0 small">
+      <% Object.keys(errors).forEach(function(key){ %>
+        <li><%= errors[key] %></li>
+      <% }); %>
+    </ul>
+  </div>
+<% } %>

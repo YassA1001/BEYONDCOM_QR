@@ -1,0 +1,215 @@
+<div class="d-flex align-items-center justify-content-between mb-4 fade-in">
+  <div>
+    <h2 class="page-h2">Statistiques</h2>
+    <p class="text-muted mb-0"><%= event.name %></p>
+  </div>
+  <a href="/admin/events/<%= event.id %>" class="btn btn-ghost">← Événement</a>
+</div>
+
+<!-- Range filter -->
+<div class="d-flex flex-wrap gap-2 mb-3 fade-in">
+  <% [['today','Aujourd\'hui'],['7d','7 jours'],['30d','30 jours'],['all','Tout']].forEach(function(p){ %>
+    <a href="/admin/events/<%= event.id %>/stats?range=<%= p[0] %>" class="btn btn-pill btn-sm <%= range === p[0] ? 'btn-primary' : 'btn-light' %>"><%= p[1] %></a>
+  <% }); %>
+</div>
+
+<!-- KPI cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3">
+    <div class="stat-card stat-mini lift" style="--accent:#0ea5e9">
+      <div class="stat-icon"><i class="bi bi-qr-code-scan"></i></div>
+      <div class="stat-body">
+        <div class="stat-label">Total scans</div>
+        <div class="stat-value"><%= stats.scans %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card stat-mini lift" style="--accent:#f59e0b">
+      <div class="stat-icon"><i class="bi bi-hand-index-thumb"></i></div>
+      <div class="stat-body">
+        <div class="stat-label">Total clics</div>
+        <div class="stat-value"><%= stats.clicks %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card stat-mini lift" style="--accent:#8b5cf6">
+      <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+      <div class="stat-body">
+        <div class="stat-label">Taux de clic</div>
+        <div class="stat-value"><%= stats.clickRate %>%</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card stat-mini lift" style="--accent:#10b981">
+      <div class="stat-icon"><i class="bi bi-link-45deg"></i></div>
+      <div class="stat-body">
+        <div class="stat-label">Lien top</div>
+        <div class="stat-value small"><%= stats.topLink ? stats.topLink.title : '—' %></div>
+        <div class="stat-sub"><%= stats.topLink ? stats.topLink.clicks + ' clics' : 'Aucun' %></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick period stats -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="period-pill"><i class="bi bi-calendar-day"></i> Aujourd'hui<span><%= stats.scansToday %></span></div></div>
+  <div class="col-md-4"><div class="period-pill"><i class="bi bi-calendar-week"></i> 7 jours<span><%= stats.scans7 %></span></div></div>
+  <div class="col-md-4"><div class="period-pill"><i class="bi bi-calendar-month"></i> 30 jours<span><%= stats.scans30 %></span></div></div>
+</div>
+
+<!-- Charts -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-xl-8">
+    <div class="card-panel h-100">
+      <div class="card-panel-header"><h3><i class="bi bi-activity me-2"></i>Scans par jour</h3></div>
+      <div class="card-panel-body">
+        <% if (stats.scans === 0) { %>
+          <div class="empty-state py-5"><i class="bi bi-bar-chart"></i><p>Aucun scan pour la période sélectionnée.</p></div>
+        <% } else { %>
+          <div class="chart-wrap" style="height:300px"><canvas id="scanSeriesChart"></canvas></div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-xl-4">
+    <div class="card-panel h-100">
+      <div class="card-panel-header"><h3><i class="bi bi-pie-chart me-2"></i>Appareils</h3></div>
+      <div class="card-panel-body">
+        <% if (stats.devices.length === 0) { %>
+          <div class="empty-state py-4"><i class="bi bi-phone"></i><p>Aucune donnée.</p></div>
+        <% } else { %>
+          <div class="chart-wrap" style="height:300px"><canvas id="deviceChart"></canvas></div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-12 col-lg-6">
+    <div class="card-panel h-100">
+      <div class="card-panel-header"><h3><i class="bi bi-bar-chart-line me-2"></i>Clics par bouton</h3></div>
+      <div class="card-panel-body">
+        <% if (stats.linkStats.length === 0) { %>
+          <div class="empty-state py-4"><i class="bi bi-link-45deg"></i><p>Aucun lien.</p></div>
+        <% } else { %>
+          <div class="chart-wrap" style="height:280px"><canvas id="linkClicksChart"></canvas></div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <div class="row g-3">
+      <div class="col-12">
+        <div class="card-panel">
+          <div class="card-panel-header"><h3><i class="bi bi-windows me-2"></i>Systèmes d'exploitation</h3></div>
+          <div class="card-panel-body">
+            <% if (stats.os.length === 0) { %><div class="empty-state py-3"><p>Aucune donnée.</p></div><% } else { %>
+              <ul class="breakdown-bar-list">
+                <% stats.os.forEach(function(o){ %>
+                  <li>
+                    <span class="breakdown-label"><i class="bi bi-<%= osIcon(o.key) %>"></i> <%= o.key %></span>
+                    <div class="bar-track"><div class="bar-fill" style="width:<%= pct(o.count, stats.scans) %>%;background:#0f172a"></div></div>
+                    <span class="breakdown-count"><%= o.count %></span>
+                  </li>
+                <% }); %>
+              </ul>
+            <% } %>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="card-panel">
+          <div class="card-panel-header"><h3><i class="bi bi-globe me-2"></i>Navigateurs</h3></div>
+          <div class="card-panel-body">
+            <% if (stats.browsers.length === 0) { %><div class="empty-state py-3"><p>Aucune donnée.</p></div><% } else { %>
+              <ul class="breakdown-bar-list">
+                <% stats.browsers.forEach(function(b){ %>
+                  <li>
+                    <span class="breakdown-label"><i class="bi bi-<%= browserIcon(b.key) %>"></i> <%= b.key %></span>
+                    <div class="bar-track"><div class="bar-fill" style="width:<%= pct(b.count, stats.scans) %>%;background:#0ea5e9"></div></div>
+                    <span class="breakdown-count"><%= b.count %></span>
+                  </li>
+                <% }); %>
+              </ul>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Links table -->
+<div class="card-panel mb-4">
+  <div class="card-panel-header"><h3><i class="bi bi-list-ul me-2"></i>Clics par bouton</h3></div>
+  <div class="card-panel-body">
+    <% if (stats.linkStats.length === 0) { %>
+      <div class="empty-state py-4"><p>Aucun lien pour cet événement.</p></div>
+    <% } else { %>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+          <thead><tr><th>Bouton</th><th>Type</th><th>Statut</th><th class="text-end">Clics</th></tr></thead>
+          <tbody>
+            <% stats.linkStats.forEach(function(l){ %>
+              <tr>
+                <td class="fw-semibold"><%= l.title %></td>
+                <td><span class="badge link-type-tag"><%= l.type %></span></td>
+                <td>
+                  <% if (l.isActive){ %><span class="badge badge-active">Actif</span><% } else { %><span class="badge badge-inactive">Inactif</span><% } %>
+                </td>
+                <td class="text-end"><span class="num-pill"><%= l.clicks %></span></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+  const palette = <%- JSON.stringify(palette) %>;
+  const stats = <%- JSON.stringify(stats) %>;
+  const scanSeries = stats.scanSeries;
+
+  function pct(c, total){ return total > 0 ? Math.round((c/total)*100) : 0; }
+  window.pct = pct;
+  const total = stats.scans;
+  document.querySelectorAll('.bar-fill').forEach(function(){});
+
+  if (window.Chart && document.getElementById('scanSeriesChart')){
+    const ctx = document.getElementById('scanSeriesChart').getContext('2d');
+    const grad = ctx.createLinearGradient(0,0,0,300);
+    grad.addColorStop(0,'rgba(14,165,233,0.4)');
+    grad.addColorStop(1,'rgba(14,165,233,0)');
+    new Chart(ctx, {
+      type:'line',
+      data:{labels:scanSeries.labels, datasets:[{data:scanSeries.values, borderColor:'#0ea5e9', backgroundColor:grad, tension:0.4, fill:true, borderWidth:3, pointBackgroundColor:'#0ea5e9', pointRadius:4}]},
+      options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}, grid:{color:'rgba(15,23,42,0.06)'}}, x:{grid:{display:false}}}, animation:{duration:900}}
+    });
+  }
+  if (window.Chart && document.getElementById('deviceChart')){
+    const dev = stats.devices.map(d => ({label:d.key, value:d.count}));
+    new Chart(document.getElementById('deviceChart'), {
+      type:'doughnut',
+      data:{labels:dev.map(d=>d.label), datasets:[{data:dev.map(d=>d.value), backgroundColor:palette, borderWidth:0}]},
+      options:{cutout:'60%', plugins:{legend:{position:'bottom', labels:{padding:14}}}, animation:{duration:1000}}
+    });
+  }
+  if (window.Chart && document.getElementById('linkClicksChart')){
+    const links = stats.linkStats;
+    new Chart(document.getElementById('linkClicksChart'), {
+      type:'bar',
+      data:{labels:links.map(l=>l.title), datasets:[{data:links.map(l=>l.clicks), backgroundColor:'#0ea5e9', borderRadius:6, barThickness:'flex'}]},
+      options:{indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}, grid:{color:'rgba(15,23,42,0.06)'}}, y:{grid:{display:false}}}, animation:{duration:800}}
+    });
+  }
+})();
+</script>

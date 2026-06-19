@@ -1,0 +1,128 @@
+<div class="d-flex align-items-center justify-content-between mb-4 fade-in">
+  <div>
+    <h2 class="page-h2">Modifier l'événement</h2>
+    <p class="text-muted mb-0"><%= event.name %></p>
+  </div>
+  <a href="/admin/events/<%= event.id %>" class="btn btn-ghost">← Retour</a>
+</div>
+
+<form action="/admin/events/<%= event.id %>?_method=POST" method="post" enctype="multipart/form-data" novalidate>
+  <div class="row g-3">
+    <div class="col-12 col-lg-8">
+      <div class="card-panel mb-3">
+        <div class="card-panel-header"><h3><i class="bi bi-info-circle me-2"></i>Informations</h3></div>
+        <div class="card-panel-body">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="field-label">Nom <span class="req">*</span></label>
+              <input type="text" name="name" class="form-control" value="<%= event.name %>" required>
+            </div>
+            <div class="col-md-4">
+              <label class="field-label">Ville <span class="req">*</span></label>
+              <input type="text" name="city" class="form-control" value="<%= event.city %>" required>
+            </div>
+            <div class="col-12">
+              <label class="field-label">Description</label>
+              <textarea name="description" rows="3" class="form-control"><%= event.description || '' %></textarea>
+            </div>
+            <div class="col-12">
+              <label class="field-label">Lieu</label>
+              <input type="text" name="location" class="form-control" value="<%= event.location || '' %>">
+            </div>
+            <div class="col-md-6">
+              <label class="field-label">Date de début</label>
+              <% const sd = event.startDate ? new Date(event.startDate).toISOString().slice(0,16) : '' %>
+              <input type="datetime-local" name="startDate" class="form-control" value="<%= sd %>">
+            </div>
+            <div class="col-md-6">
+              <label class="field-label">Date de fin</label>
+              <% const ed = event.endDate ? new Date(event.endDate).toISOString().slice(0,16) : '' %>
+              <input type="datetime-local" name="endDate" class="form-control" value="<%= ed %>">
+            </div>
+            <div class="col-md-6">
+              <label class="field-label">Couleur principale</label>
+              <div class="color-input">
+                <input type="color" name="primaryColor" id="primaryColor" value="<%= event.primaryColor || '#0ea5e9' %>">
+                <input type="text" class="form-control" id="colorHex" value="<%= event.primaryColor || '#0ea5e9' %>" readonly>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="field-label">Statut</label>
+              <div class="form-check form-switch form-switch-lg mt-2">
+                <input class="form-check-input" type="checkbox" role="switch" name="isActive" id="isActive" <%= event.isActive ? 'checked' : '' %>>
+                <label class="form-check-label" for="isActive">Événement actif (visible publiquement)</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="card-panel mb-3">
+        <div class="card-panel-header"><h3><i class="bi bi-image me-2"></i>Logo</h3></div>
+        <div class="card-panel-body">
+          <div class="upload-preview <% if(event.logo){ %>has-image<% } %>" id="logoPreview">
+            <% if (event.logo){ %><img src="<%= event.logo %>" alt=""><% } else { %>
+              <i class="bi bi-image placeholder-icon"></i>
+              <span class="placeholder-text">Téléverser</span>
+            <% } %>
+          </div>
+          <input type="hidden" name="existingLogo" value="<%= event.logo || '' %>">
+          <input type="file" name="logo" id="logoInput" accept="image/jpeg,image/png" hidden>
+          <div class="form-hint">JPG ou PNG — 2 Mo max</div>
+        </div>
+      </div>
+
+      <div class="card-panel mb-3">
+        <div class="card-panel-header"><h3><i class="bi bi-card-image me-2"></i>Bannière</h3></div>
+        <div class="card-panel-body">
+          <div class="upload-preview wide <% if(event.banner){ %>has-image<% } %>" id="bannerPreview">
+            <% if (event.banner){ %><img src="<%= event.banner %>" alt=""><% } else { %>
+              <i class="bi bi-card-image placeholder-icon"></i>
+              <span class="placeholder-text">Téléverser</span>
+            <% } %>
+          </div>
+          <input type="hidden" name="existingBanner" value="<%= event.banner || '' %>">
+          <input type="file" name="banner" id="bannerInput" accept="image/jpeg,image/png" hidden>
+          <div class="form-hint">JPG ou PNG — 2 Mo max</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="d-flex justify-content-end gap-2 mt-2">
+        <a href="/admin/events/<%= event.id %>" class="btn btn-light btn-pill px-4">Annuler</a>
+        <button type="submit" class="btn btn-primary btn-pill px-4 btn-with-loader">
+          <span class="btn-label"><i class="bi bi-check-lg me-1"></i>Enregistrer</span>
+          <span class="btn-spinner spinner-border spinner-border-sm d-none"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+(function(){
+  const cp = document.getElementById('primaryColor');
+  const ch = document.getElementById('colorHex');
+  if (cp && ch) cp.addEventListener('input', () => ch.value = cp.value);
+  function bind(inputId, previewId){
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    if (!input || !preview) return;
+    preview.addEventListener('click', () => input.click());
+    input.addEventListener('change', () => {
+      const f = input.files[0];
+      if (!f) return;
+      if (f.size > 2*1024*1024){ toast('Fichier trop volumineux. Max 2 Mo.','danger'); input.value=''; return; }
+      if (!['image/jpeg','image/png'].includes(f.type)){ toast('Format non supporté.','danger'); input.value=''; return; }
+      const url = URL.createObjectURL(f);
+      preview.classList.add('has-image');
+      preview.innerHTML = '<img src="'+url+'" alt="">';
+    });
+  }
+  bind('logoInput','logoPreview');
+  bind('bannerInput','bannerPreview');
+})();
+</script>

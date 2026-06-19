@@ -1,0 +1,83 @@
+<div class="d-flex align-items-center justify-content-between mb-4 fade-in">
+  <div>
+    <h2 class="page-h2">QR Code</h2>
+    <p class="text-muted mb-0"><%= event.name %></p>
+  </div>
+  <a href="/admin/events/<%= event.id %>" class="btn btn-ghost">← Événement</a>
+</div>
+
+<div class="row g-3 justify-content-center">
+  <div class="col-12 col-lg-6">
+    <div class="card-panel qr-card text-center fade-in">
+      <div class="qr-display">
+        <img src="/qrcodes/<%= event.slug %>-qr.png?v=<%= Date.now() %>" alt="QR Code" id="qrImage"
+             onerror="this.style.display='none'; document.getElementById('qrPlaceholder').style.display='flex'">
+        <div class="qr-placeholder" id="qrPlaceholder" style="display:none">
+          <i class="bi bi-qr-code"></i>
+          <p>QR non généré</p>
+          <small class="text-muted">Cliquez sur "Générer"</small>
+        </div>
+      </div>
+      <div class="qr-info">
+        <h3 class="qr-event-name"><%= event.name %></h3>
+        <div class="qr-url-box">
+          <i class="bi bi-link-45deg"></i>
+          <span id="publicUrlText"><%= publicUrl %></span>
+          <button class="btn btn-icon" id="copyUrlBtn" title="Copier"><i class="bi bi-clipboard"></i></button>
+        </div>
+      </div>
+      <div class="d-grid gap-2 d-md-flex justify-content-center mt-3">
+        <form method="post" action="/admin/events/<%= event.id %>/qr/generate">
+          <button class="btn btn-soft btn-pill px-4"><i class="bi bi-arrow-repeat me-1"></i>Générer / Régénérer</button>
+        </form>
+        <a href="/admin/events/<%= event.id %>/qr/download" class="btn btn-primary btn-pill px-4">
+          <i class="bi bi-download me-1"></i>Télécharger PNG
+        </a>
+      </div>
+      <div class="qr-info-note mt-3">
+        <i class="bi bi-info-circle me-1"></i>
+        Ce QR reste valide même si vous modifiez les liens. Il pointe toujours vers <code>/e/<%= event.slug %></code>.
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card-panel fade-in">
+      <div class="card-panel-header"><h3><i class="bi bi-lightbulb me-2"></i>Comment ça marche</h3></div>
+      <div class="card-panel-body">
+        <ol class="howto-list">
+          <li>Le QR code pointe vers une URL stable : <code>/e/<%= event.slug %></code></li>
+          <li>Lorsqu'un visiteur le scanne, il arrive sur la page publique de l'événement.</li>
+          <li>Chaque scan est enregistré avec l'appareil, le navigateur et l'OS du visiteur.</li>
+          <li>Les boutons affichés pointent vers <code>/go/:linkId</code>, ce qui trace chaque clic avant redirection.</li>
+          <li>Vous pouvez modifier, activer/désactiver les liens sans jamais réimprimer le QR.</li>
+          <li>Désactiver l'événement affiche une page 404 propre (aucun crash).</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="card-panel mt-3 fade-in">
+      <div class="card-panel-header"><h3><i class="bi bi-share me-2"></i>Partager</h3></div>
+      <div class="card-panel-body d-grid gap-2">
+        <button class="btn btn-soft text-start" id="copyLink2"><i class="bi bi-clipboard me-2"></i>Copier le lien public</button>
+        <a href="<%= publicUrl %>" target="_blank" class="btn btn-soft text-start"><i class="bi bi-box-arrow-up-right me-2"></i>Ouvrir la page publique</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const url = '<%= publicUrl %>';
+  function copy(text){
+    navigator.clipboard.writeText(text).then(() => toast('Lien copié !','success')).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); toast('Lien copié !','success'); } catch { toast('Copie impossible','danger'); }
+      document.body.removeChild(ta);
+    });
+  }
+  document.getElementById('copyUrlBtn')?.addEventListener('click', () => copy(url));
+  document.getElementById('copyLink2')?.addEventListener('click', () => copy(url));
+})();
+</script>

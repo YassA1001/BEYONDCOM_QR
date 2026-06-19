@@ -1,0 +1,51 @@
+<div class="d-flex align-items-center justify-content-between mb-4 fade-in">
+  <div>
+    <h2 class="page-h2">Nouvel administrateur</h2>
+    <p class="text-muted mb-0">Créez un compte d'accès à la plateforme.</p>
+  </div>
+  <a href="/admin/users" class="btn btn-ghost">← Retour</a>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card-panel fade-in">
+      <div class="card-panel-body">
+        <% if (flash && flash.error){ %>
+          <div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i><%= flash.error %></div>
+        <% } %>
+        <form action="/admin/users" method="post" novalidate>
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="field-label">Nom complet <span class="req">*</span></label>
+              <input type="text" name="name" class="form-control" value="<%= old && old.name %>" required>
+            </div>
+            <div class="col-12">
+              <label class="field-label">Email <span class="req">*</span></label>
+              <input type="email" name="email" class="form-control" value="<%= old && old.email %>" required>
+            </div>
+            <div class="col-12">
+              <label class="field-label">Mot de passe <span class="req">*</span></label>
+              <input type="password" name="password" class="form-control" required>
+              <div class="form-hint">Min. 6 caractères.</div>
+            </div>
+            <div class="col-12">
+              <label class="field-label">Rôle</label>
+              <select name="role" class="form-select">
+                <option value="ADMIN" <%= old && old.role === 'ADMIN' ? 'selected' : '' %>>Administrateur</option>
+                <option value="SUPER_ADMIN" <%= old && old.role === 'SUPER_ADMIN' ? 'selected' : '' %>>Super administrateur</option>
+              </select>
+              <div class="form-hint">Le super admin peut gérer les comptes utilisateurs.</div>
+            </div>
+            <div class="col-12 d-flex justify-content-end gap-2 mt-2">
+              <a href="/admin/users" class="btn btn-light btn-pill px-4">Annuler</a>
+              <button class="btn btn-primary btn-pill px-4 btn-with-loader">
+                <span class="btn-label"><i class="bi bi-check-lg me-1"></i>Créer l'admin</span>
+                <span class="btn-spinner spinner-border spinner-border-sm d-none"></span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

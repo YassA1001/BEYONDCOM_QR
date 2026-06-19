@@ -1,0 +1,18 @@
+<header class="topbar">
+  <button class="topbar-toggle d-lg-none" id="sidebarToggle" aria-label="Menu">
+    <i class="bi bi-list"></i>
+  </button>
+
+  <div class="topbar-title">
+    <h1 class="page-title"><%= typeof title !== 'undefined' ? title : '' %></h1>
+  </div>
+
+  <div class="topbar-actions">
+    <a href="<%= appUrl %>" target="_blank" class="btn btn-ghost d-none d-md-inline-flex">
+      <i class="bi bi-box-arrow-up-right"></i> Voir le site
+    </a>
+    <a href="/admin/events/create" class="btn btn-primary btn-pill">
+      <i class="bi bi-plus-lg"></i><span class="d-none d-sm-inline"> Créer événement</span>
+    </a>
+  </div>
+</header>

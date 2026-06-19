@@ -1,0 +1,135 @@
+<div class="d-flex align-items-center justify-content-between mb-4 fade-in">
+  <div>
+    <h2 class="page-h2">Liens du bouton</h2>
+    <p class="text-muted mb-0"><%= event.name %> · <a href="<%= appUrl %>/e/<%= event.slug %>" target="_blank">/e/<%= event.slug %></a></p>
+  </div>
+  <a href="/admin/events/<%= event.id %>" class="btn btn-ghost">← Événement</a>
+</div>
+
+<!-- Create / Edit form -->
+<div class="card-panel mb-4 fade-in" id="linkFormCard">
+  <div class="card-panel-header">
+    <h3 id="linkFormTitle"><i class="bi bi-plus-circle me-2"></i>Ajouter un lien</h3>
+  </div>
+  <div class="card-panel-body">
+    <%
+      let editingLink = null;
+      if (typeof editLinkId !== 'undefined' && editLinkId) {
+        editingLink = event.links.find(l => l.id === editLinkId);
+      }
+    %>
+    <form action="<%= editingLink ? '/admin/events/'+event.id+'/links/'+editingLink.id : '/admin/events/'+event.id+'/links' %>" method="post" class="row g-3 align-items-end" novalidate>
+      <% if (editingLink){ %>
+        <input type="hidden" name="_method" value="POST">
+      <% } %>
+      <div class="col-md-3">
+        <label class="field-label">Titre</label>
+        <input type="text" name="title" class="form-control" value="<%= editingLink ? editingLink.title : '' %>" placeholder="Site officiel" required>
+      </div>
+      <div class="col-md-2">
+        <label class="field-label">Type</label>
+        <select name="type" class="form-select">
+          <% linkTypes.forEach(function(t){ %>
+            <option value="<%= t %>" <%= editingLink && editingLink.type === t ? 'selected' : '' %>><%= t %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="field-label">URL</label>
+        <input type="url" name="url" class="form-control" value="<%= editingLink ? editingLink.url : '' %>" placeholder="https://" required>
+      </div>
+      <div class="col-md-2">
+        <label class="field-label">Couleur</label>
+        <input type="color" name="color" class="form-control form-control-color" value="<%= (editingLink && editingLink.color) || '#0ea5e9' %>">
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary btn-pill w-100"><i class="bi bi-check-lg me-1"></i><%= editingLink ? 'OK' : 'Ajouter' %></button>
+      </div>
+    </form>
+    <% if (editingLink){ %>
+      <div class="mt-2"><a href="/admin/events/<%= event.id %>/links" class="text-muted small">↩ Annuler la modification</a></div>
+    <% } %>
+  </div>
+</div>
+
+<!-- Links list (sortable) -->
+<div class="card-panel fade-in">
+  <div class="card-panel-header">
+    <h3><i class="bi bi-list-ol me-2"></i>Boutons affichés (<%= event.links.length %>)</h3>
+    <span class="text-muted small">Glissez pour réordonner</span>
+  </div>
+  <div class="card-panel-body">
+    <% if (event.links.length === 0){ %>
+      <div class="empty-state py-5">
+        <i class="bi bi-link-45deg"></i>
+        <p>Aucun lien pour l'instant. Ajoutez-en un ci-dessus.</p>
+      </div>
+    <% } else { %>
+      <div class="links-list" id="linksList" data-event-id="<%= event.id %>">
+        <% event.links.forEach(function(l, i){ %>
+          <div class="link-row" data-id="<%= l.id %>">
+            <div class="drag-handle" title="Déplacer"><i class="bi bi-grip-vertical"></i></div>
+            <div class="link-index"><%= i+1 %></div>
+            <div class="link-type-icon" style="color:<%= l.color || '#0ea5e9' %>">
+              <i class="bi bi-<%= iconFor(l.type) %>"></i>
+            </div>
+            <div class="link-content">
+              <div class="link-title"><%= l.title %></div>
+              <a href="<%= l.url %>" target="_blank" class="link-url"><%= l.url %></a>
+            </div>
+            <span class="badge link-type-tag"><%= l.type %></span>
+            <form method="post" action="/admin/events/<%= event.id %>/links/<%= l.id %>/toggle">
+              <button class="toggle-switch" type="submit" data-on="<%= l.isActive %>"><span></span></button>
+            </form>
+            <div class="link-actions">
+              <a href="/admin/events/<%= event.id %>/links/<%= l.id %>/edit" class="btn btn-icon"><i class="bi bi-pencil"></i></a>
+              <button class="btn btn-icon text-danger" data-confirm
+                      data-form-action="/admin/events/<%= event.id %>/links/<%= l.id %>/delete"
+                      data-title="Supprimer le lien"
+                      data-message="Supprimer « <%= l.title %> » ?"
+                      data-action-label="Supprimer">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
+<script>
+(function(){
+  function iconFor(type){
+    const m = {
+      website:'globe', pdf:'file-pdf', android:'android2', ios:'apple',
+      maps:'geo-alt', whatsapp:'whatsapp', instagram:'instagram', feedback:'chat-left-text',
+      quiz:'patch-question', stream:'play-circle', other:'link-45deg'
+    };
+    return m[type] || 'link-45deg';
+  }
+  window.iconFor = iconFor;
+
+  const list = document.getElementById('linksList');
+  if (!list || !window.Sortable) return;
+  const eventId = list.dataset.eventId;
+  let timer;
+  Sortable.create(list, {
+    handle: '.drag-handle',
+    animation: 180,
+    ghostClass: 'link-ghost',
+    onEnd: function(){
+      const order = [...list.querySelectorAll('.link-row')].map(el => parseInt(el.dataset.id, 10));
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        fetch(`/admin/events/${eventId}/links/reorder`, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({order})
+        }).then(r => r.json()).then(() => toast('Ordre mis à jour.','success')).catch(()=>{});
+      }, 300);
+    }
+  });
+})();
+</script>

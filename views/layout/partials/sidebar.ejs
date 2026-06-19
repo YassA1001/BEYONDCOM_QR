@@ -1,0 +1,54 @@
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="brand">
+      <div class="brand-mark"><i class="bi bi-qr-code"></i></div>
+      <div>
+        <div class="brand-name">BeyondCom</div>
+        <div class="brand-sub">QR Event Platform</div>
+      </div>
+    </div>
+    <button class="sidebar-close d-lg-none" id="sidebarClose" aria-label="Fermer">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="/admin/dashboard" class="nav-item <%= activeMenu === 'dashboard' ? 'active' : '' %>">
+      <i class="bi bi-grid-1x2"></i><span>Tableau de bord</span>
+    </a>
+    <a href="/admin/events" class="nav-item <%= activeMenu === 'events' ? 'active' : '' %>">
+      <i class="bi bi-calendar2-event"></i><span>Événements</span>
+    </a>
+    <a href="/admin/events/create" class="nav-item-sub">
+      <i class="bi bi-plus-circle"></i><span>Nouvel événement</span>
+    </a>
+
+    <% if (currentUser && currentUser.role === 'SUPER_ADMIN') { %>
+      <div class="nav-section">Administration</div>
+      <a href="/admin/users" class="nav-item <%= activeMenu === 'users' ? 'active' : '' %>">
+        <i class="bi bi-people"></i><span>Administrateurs</span>
+      </a>
+      <a href="/admin/users/create" class="nav-item-sub">
+        <i class="bi bi-person-plus"></i><span>Nouvel admin</span>
+      </a>
+    <% } %>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar"><%= (currentUser.name || '?').charAt(0).toUpperCase() %></div>
+      <div class="user-meta">
+        <div class="user-name"><%= currentUser.name %></div>
+        <div class="user-role">
+          <span class="role-dot"></span>
+          <%= currentUser.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin' %>
+        </div>
+      </div>
+    </div>
+    <form method="post" action="/logout" class="d-block">
+      <button class="logout-btn" type="submit">
+        <i class="bi bi-box-arrow-right"></i> Déconnexion
+      </button>
+    </form>
+  </div>
+</aside>

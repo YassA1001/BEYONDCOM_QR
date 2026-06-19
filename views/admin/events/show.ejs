@@ -1,0 +1,85 @@
+<div class="d-flex align-items-center justify-content-between mb-4 fade-in">
+  <div>
+    <h2 class="page-h2"><%= event.name %></h2>
+    <p class="text-muted mb-0">Détails de l'événement · /e/<%= event.slug %></p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="/admin/events/<%= event.id %>/edit" class="btn btn-soft btn-pill"><i class="bi bi-pencil me-1"></i>Modifier</a>
+    <a href="<%= appUrl %>/e/<%= event.slug %>" target="_blank" class="btn btn-primary btn-pill"><i class="bi bi-box-arrow-up-right me-1"></i>Page publique</a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-8">
+    <div class="event-hero" style="<% if (event.banner){ %>background-image:url('<%= event.banner %>');<% } else { %>background:linear-gradient(135deg, <%= event.primaryColor || '#0ea5e9' %>, #0f172a);<% } %>">
+      <% if (event.logo){ %><img src="<%= event.logo %>" class="event-hero-logo" alt=""><% } %>
+      <div class="event-hero-overlay">
+        <h1><%= event.name %></h1>
+        <div class="event-hero-meta">
+          <% if (event.city){ %><span><i class="bi bi-geo-alt"></i><%= event.city %></span><% } %>
+          <% if (event.location){ %><span><i class="bi bi-pin-map"></i><%= event.location %></span><% } %>
+          <% if (event.startDate){ %><span><i class="bi bi-calendar3"></i><%= formatDate.formatRange(event.startDate, event.endDate) %></span><% } %>
+        </div>
+      </div>
+    </div>
+
+    <% if (event.description){ %>
+      <div class="card-panel mt-3">
+        <div class="card-panel-header"><h3><i class="bi bi-text-paragraph me-2"></i>Description</h3></div>
+        <div class="card-panel-body">
+          <p class="mb-0"><%= event.description %></p>
+        </div>
+      </div>
+    <% } %>
+
+    <div class="row g-3 mt-1">
+      <div class="col-sm-4">
+        <div class="mini-stat"><i class="bi bi-qr-code-scan"></i><div><strong><%= event._count.scans %></strong><span>scans</span></div></div>
+      </div>
+      <div class="col-sm-4">
+        <div class="mini-stat"><i class="bi bi-hand-index-thumb"></i><div><strong><%= event._count.clicks %></strong><span>clics</span></div></div>
+      </div>
+      <div class="col-sm-4">
+        <div class="mini-stat"><i class="bi bi-link-45deg"></i><div><strong><%= event._count.links %></strong><span>liens</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-4">
+    <div class="card-panel mb-3">
+      <div class="card-panel-header"><h3>Actions rapides</h3></div>
+      <div class="card-panel-body d-grid gap-2">
+        <a href="/admin/events/<%= event.id %>/links" class="btn btn-soft text-start"><i class="bi bi-link-45deg me-2"></i>Gérer les liens</a>
+        <a href="/admin/events/<%= event.id %>/qr" class="btn btn-soft text-start"><i class="bi bi-qr-code me-2"></i>QR code</a>
+        <a href="/admin/events/<%= event.id %>/stats" class="btn btn-soft text-start"><i class="bi bi-bar-chart me-2"></i>Statistiques</a>
+      </div>
+    </div>
+
+    <div class="card-panel">
+      <div class="card-panel-header"><h3>Informations</h3></div>
+      <div class="card-panel-body">
+        <ul class="info-list">
+          <li><span>Slug</span><code>/e/<%= event.slug %></code></li>
+          <li><span>Ville</span><strong><%= event.city || '—' %></strong></li>
+          <li><span>Lieu</span><strong><%= event.location || '—' %></strong></li>
+          <li><span>Début</span><strong><%= formatDate.formatDateTime(event.startDate) %></strong></li>
+          <li><span>Fin</span><strong><%= formatDate.formatDateTime(event.endDate) %></strong></li>
+          <li><span>Couleur</span><span class="color-chip" style="background:<%= event.primaryColor || '#0ea5e9' %>"></span></li>
+          <li><span>Statut</span>
+            <% if (event.isActive){ %><span class="badge badge-active">Actif</span><% } else { %><span class="badge badge-inactive">Inactif</span><% } %>
+          </li>
+          <li><span>Créé par</span><strong><%= event.createdBy ? event.createdBy.name : '—' %></strong></li>
+        </ul>
+        <form method="post" action="/admin/events/<%= event.id %>/toggle" class="mt-3">
+          <button class="btn btn-light btn-pill w-100"><i class="bi bi-toggle-on me-1"></i><%= event.isActive ? 'Désactiver' : 'Activer' %></button>
+        </form>
+        <button class="btn btn-outline-danger btn-pill w-100 mt-2"
+                data-confirm data-form-action="/admin/events/<%= event.id %>/delete"
+                data-title="Supprimer l'événement"
+                data-message="Cette action est irréversible et supprimera liens + statistiques.">
+          <i class="bi bi-trash me-1"></i>Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
